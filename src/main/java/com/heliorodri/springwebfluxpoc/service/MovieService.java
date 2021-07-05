@@ -25,4 +25,11 @@ public class MovieService {
         return repository.save(movie);
     }
 
+    public Mono<Void> update(int id, Movie movie) {
+        return findById(id)
+                .map(movieToSave -> movieToSave.withName(movie.getName()))
+                .flatMap(repository::save)
+                .then();
+    }
+
 }
