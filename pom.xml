@@ -13,10 +13,27 @@
     <version>0.0.1-SNAPSHOT</version>
     <name>spring-webflux-poc</name>
     <description>Demo project for Spring Boot</description>
+
     <properties>
         <java.version>11</java.version>
+        <blockhound.version>1.0.6.RELEASE</blockhound.version>
+        <r2dbc-spi.version>0.8.5.RELEASE</r2dbc-spi.version>
     </properties>
+
     <dependencies>
+
+        <dependency>
+            <groupId>io.projectreactor.tools</groupId>
+            <artifactId>blockhound</artifactId>
+            <version>${blockhound.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.r2dbc</groupId>
+            <artifactId>r2dbc-spi</artifactId>
+            <version>${r2dbc-spi.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-data-r2dbc</artifactId>
@@ -47,6 +64,8 @@
             <artifactId>reactor-test</artifactId>
             <scope>test</scope>
         </dependency>
+
+
     </dependencies>
 
     <build>
