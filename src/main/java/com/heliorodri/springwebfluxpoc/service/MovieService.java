@@ -21,4 +21,8 @@ public class MovieService {
         return repository.findById(id);
     }
 
+    public Mono<Movie> save(Movie movie) {
+        return repository.save(movie);
+    }
+
 }
