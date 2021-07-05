@@ -7,6 +7,7 @@ import org.springframework.boot.web.reactive.error.ErrorAttributes;
 import org.springframework.context.ApplicationContext;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.codec.ServerCodecConfigurer;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.server.RequestPredicates;
@@ -24,6 +25,7 @@ import static org.springframework.http.HttpStatus.INTERNAL_SERVER_ERROR;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @Order(-2)
+@Component
 public class GlobalExceptionHandler extends AbstractErrorWebExceptionHandler {
 
     public GlobalExceptionHandler(ErrorAttributes errorAttributes, WebProperties.Resources resources,
