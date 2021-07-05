@@ -17,10 +17,17 @@
     <properties>
         <java.version>11</java.version>
         <blockhound.version>1.0.6.RELEASE</blockhound.version>
-        <r2dbc-spi.version>0.8.5.RELEASE</r2dbc-spi.version>
+        <reactor-tools.version>3.4.7</reactor-tools.version>
+        <r2dbc-postgresql.version>0.8.8.RELEASE</r2dbc-postgresql.version>
     </properties>
 
     <dependencies>
+
+        <dependency>
+            <groupId>io.projectreactor</groupId>
+            <artifactId>reactor-tools</artifactId>
+            <version>${reactor-tools.version}</version>
+        </dependency>
 
         <dependency>
             <groupId>io.projectreactor.tools</groupId>
@@ -30,9 +37,10 @@
 
         <dependency>
             <groupId>io.r2dbc</groupId>
-            <artifactId>r2dbc-spi</artifactId>
-            <version>${r2dbc-spi.version}</version>
+            <artifactId>r2dbc-postgresql</artifactId>
+            <version>${r2dbc-postgresql.version}</version>
         </dependency>
+
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
