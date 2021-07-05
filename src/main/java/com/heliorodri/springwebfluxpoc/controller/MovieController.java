@@ -1,7 +1,7 @@
 package com.heliorodri.springwebfluxpoc.controller;
 
 import com.heliorodri.springwebfluxpoc.domain.Movie;
-import com.heliorodri.springwebfluxpoc.repository.MovieRepository;
+import com.heliorodri.springwebfluxpoc.service.MovieService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -15,12 +15,12 @@ import reactor.core.publisher.Flux;
 @RequiredArgsConstructor
 public class MovieController {
 
-    private final MovieRepository repository;
+    private final MovieService service;
 
     @GetMapping
     public Flux<Movie> listAll() {
         log.info("Getting all movies");
-        return repository.findAll();
+        return service.findAll();
     }
 
 }
