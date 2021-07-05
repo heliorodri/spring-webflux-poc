@@ -32,4 +32,7 @@ public class MovieService {
                 .then();
     }
 
+    public Mono<Void> delete(int id) {
+        return findById(id).flatMap(repository::delete);
+    }
 }
