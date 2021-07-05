@@ -3,15 +3,15 @@ package com.heliorodri.springwebfluxpoc.controller;
 import com.heliorodri.springwebfluxpoc.domain.Movie;
 import com.heliorodri.springwebfluxpoc.service.MovieService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 
 @RestController
 @RequestMapping("movies")
-@Slf4j
 @RequiredArgsConstructor
 public class MovieController {
 
@@ -19,8 +19,12 @@ public class MovieController {
 
     @GetMapping
     public Flux<Movie> listAll() {
-        log.info("Getting all movies");
         return service.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Mono<Movie> findById(@PathVariable int id){
+        return service.findById(id);
     }
 
 }
