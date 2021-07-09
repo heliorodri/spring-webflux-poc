@@ -24,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.MOVIE_ID;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeSaved;
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeUpdated;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -132,6 +133,27 @@ class MovieServiceTest {
         StepVerifier.create(service.delete(movieNotFoundId))
                 .expectSubscription()
                 .expectError()
+                .verify();
+    }
+
+    @Test
+    @DisplayName("it should update a movie with success")
+    public void itShouldUpdateTheMovieWithSuccess(){
+        when(repository.save(buildMovieToBeUpdated())).thenReturn(Mono.empty());
+
+        StepVerifier.create(service.update(MOVIE_ID, buildMovieToBeUpdated()))
+                .expectSubscription()
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should return error when trying to update a movie that does not exists")
+    public void itShouldReturnErrorWhenMovieToUpdateDoesNotExists(){
+        when(repository.findById(anyInt())).thenReturn(Mono.empty());
+
+        StepVerifier.create(service.update(MOVIE_ID, buildMovieToBeUpdated()))
+                .expectSubscription()
+                .expectError(ResponseStatusException.class)
                 .verify();
     }
 
