@@ -14,14 +14,14 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.server.ResponseStatusException;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import javax.validation.Valid;
 
+import java.util.List;
+
 import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.NOT_FOUND;
 import static org.springframework.http.HttpStatus.OK;
 
 @RestController
@@ -50,6 +50,12 @@ public class MovieController {
     public Mono<Movie> save(@Valid @RequestBody Movie movie) {
         log.info("Saving movie: {}", movie.getName());
         return service.save(movie);
+    }
+
+    @PostMapping("/batch")
+    @ResponseStatus(CREATED)
+    public Flux<Movie> saveBatch(@RequestBody List<Movie> movies) {
+        return service.saveAll(movies);
     }
 
     @PutMapping("/{id}")
