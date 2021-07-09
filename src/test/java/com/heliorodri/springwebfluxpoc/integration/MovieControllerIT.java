@@ -146,4 +146,32 @@ public class MovieControllerIT {
                 .jsonPath("$.status").isEqualTo(400);
     }
 
+    @Test
+    @DisplayName("it should delete a movie -referenced by id- with success")
+    public void itShouldDeleteTheMovieWithSuccess(){
+        int idMovieToBeRemoved = 1;
+
+        testClient
+                .delete()
+                .uri("/movies/{id}", idMovieToBeRemoved)
+                .exchange()
+                .expectStatus().isNoContent();
+    }
+
+    @Test
+    @DisplayName("it should return error when trying to delete movie which does not exists")
+    public void itShouldReturnErroWhenMovieIsNotFoundForDelete(){
+        int movieNotFoundId = 2;
+
+        when(repository.findById(movieNotFoundId)).thenReturn(Mono.empty());
+
+        testClient
+                .delete()
+                .uri("/movies/{id}", movieNotFoundId)
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.status").isEqualTo(404);
+    }
+
 }
