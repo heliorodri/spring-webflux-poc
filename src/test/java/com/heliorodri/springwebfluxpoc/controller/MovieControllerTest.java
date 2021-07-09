@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
@@ -31,6 +33,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 class MovieControllerTest{
 
     @InjectMocks
@@ -43,7 +47,8 @@ class MovieControllerTest{
 
     @BeforeAll
     public static void blockHoundSetup(){
-        BlockHound.install();
+        BlockHound.install(builder ->
+                builder.allowBlockingCallsInside("java.util.UUID", "randomUUID"));
     }
 
     @BeforeEach

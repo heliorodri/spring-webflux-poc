@@ -10,6 +10,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.web.server.ResponseStatusException;
 import reactor.blockhound.BlockHound;
@@ -19,6 +21,8 @@ import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
@@ -32,6 +36,8 @@ import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 class MovieServiceTest {
 
     @InjectMocks
@@ -44,7 +50,8 @@ class MovieServiceTest {
 
     @BeforeAll
     public static void blockHoundSetup(){
-        BlockHound.install();
+        BlockHound.install(builder ->
+                builder.allowBlockingCallsInside("java.util.UUID", "randomUUID"));
     }
 
     @BeforeEach
@@ -53,6 +60,9 @@ class MovieServiceTest {
         when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
         when(repository.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
         when(repository.delete(any(Movie.class))).thenReturn(Mono.empty());
+
+        when(repository.saveAll(Arrays.asList(buildMovieToBeSaved(), buildMovieToBeSaved())))
+                .thenReturn(Flux.just(movie, movie));
     }
 
     @Test
@@ -154,6 +164,34 @@ class MovieServiceTest {
         StepVerifier.create(service.update(MOVIE_ID, buildMovieToBeUpdated()))
                 .expectSubscription()
                 .expectError(ResponseStatusException.class)
+                .verify();
+    }
+
+    @Test
+    @DisplayName("it should save a list of movies with success")
+    public void itShouldSaveListOfMoviesWithSuccess(){
+        List<Movie> moviesToSave = Arrays.asList(buildMovieToBeSaved(), buildMovieToBeSaved());
+
+        StepVerifier.create(service.saveAll(moviesToSave))
+                .expectSubscription()
+                .expectNext(movie, movie)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should not save a list of movies when at least one movie name is empty")
+    public void itShouldNotSaveListOfMoviesWhenEmptyName(){
+        List<Movie> moviesToSave = Arrays.asList(
+                buildMovieToBeSaved(),
+                buildMovieToBeSaved().withName("")
+        );
+
+        when(repository.saveAll(moviesToSave)).thenReturn(Flux.just(movie, movie.withName("")));
+
+        StepVerifier.create(service.saveAll(moviesToSave))
+                .expectSubscription()
+                .expectNext(movie)
+                .expectError()
                 .verify();
     }
 

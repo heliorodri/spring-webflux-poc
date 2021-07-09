@@ -2,7 +2,6 @@ package com.heliorodri.springwebfluxpoc.integration;
 
 import com.heliorodri.springwebfluxpoc.domain.Movie;
 import com.heliorodri.springwebfluxpoc.repository.MovieRepository;
-import com.heliorodri.springwebfluxpoc.service.MovieService;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -10,9 +9,9 @@ import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.autoconfigure.web.reactive.WebFluxTest;
+import org.springframework.boot.test.autoconfigure.web.reactive.AutoConfigureWebTestClient;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
-import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
 import org.springframework.web.reactive.function.BodyInserters;
@@ -22,6 +21,8 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
@@ -32,12 +33,13 @@ import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buil
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
+import static org.mockito.ArgumentMatchers.anyIterable;
 import static org.mockito.Mockito.when;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @ExtendWith(SpringExtension.class)
-@WebFluxTest
-@Import(MovieService.class)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
+@AutoConfigureWebTestClient
 public class MovieControllerIT {
 
     @MockBean
@@ -50,7 +52,8 @@ public class MovieControllerIT {
 
     @BeforeAll
     public static void blockHoundSetup(){
-        BlockHound.install();
+        BlockHound.install(builder ->
+                builder.allowBlockingCallsInside("java.util.UUID", "randomUUID"));
     }
 
     @Test
@@ -75,6 +78,9 @@ public class MovieControllerIT {
         when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
         when(repository.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
         when(repository.delete(any(Movie.class))).thenReturn(Mono.empty());
+
+        when(repository.saveAll(Arrays.asList(buildMovieToBeSaved(),buildMovieToBeSaved())))
+                .thenReturn(Flux.just(movie, movie));
     }
 
     @Test
@@ -210,6 +216,41 @@ public class MovieControllerIT {
                 .expectStatus().isNotFound()
                 .expectBody()
                 .jsonPath("$.status", 404);
+    }
+
+    @Test
+    @DisplayName("it should save a list of movies with success")
+    public void itShouldSaveListOfMovieWithSuccess(){
+        List<Movie> moviesToSave = Arrays.asList(buildMovieToBeSaved(), buildMovieToBeSaved());
+
+        testClient
+                .post()
+                .uri("/movies/batch")
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(moviesToSave))
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBodyList(Movie.class)
+                .hasSize(2)
+                .contains(movie);
+    }
+
+    @Test
+    @DisplayName("it should not save a list of movies when at least one movie name is empty")
+    public void itShouldNotSaveListOfMoviesWhenEmptyName(){
+        Movie movieToSave = buildMovieToBeSaved();
+
+        when(repository.saveAll(anyIterable())).thenReturn(Flux.just(movieToSave, movieToSave.withName("")));
+
+        testClient
+                .post()
+                .uri("/movies/batch")
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(Arrays.asList(movieToSave, movieToSave)))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.status", 400);
     }
 
 }
