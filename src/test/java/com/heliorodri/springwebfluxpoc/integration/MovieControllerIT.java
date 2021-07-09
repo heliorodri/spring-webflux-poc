@@ -3,7 +3,6 @@ package com.heliorodri.springwebfluxpoc.integration;
 import com.heliorodri.springwebfluxpoc.domain.Movie;
 import com.heliorodri.springwebfluxpoc.repository.MovieRepository;
 import com.heliorodri.springwebfluxpoc.service.MovieService;
-import com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
@@ -19,14 +18,15 @@ import org.springframework.test.web.reactive.server.WebTestClient;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
-import reactor.test.StepVerifier;
 
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -66,6 +66,7 @@ public class MovieControllerIT {
     @BeforeEach
     public void setUp() {
         when(repository.findAll()).thenReturn(Flux.just(movie));
+        when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
     }
 
     @Test
@@ -79,6 +80,32 @@ public class MovieControllerIT {
                 .expectBodyList(Movie.class)
                 .hasSize(1)
                 .contains(movie);
+    }
+
+    @Test
+    @DisplayName("it should find a movie by its id with success")
+    public void itShouldReturnMonoMovieById(){
+        testClient
+                .get()
+                .uri("/movies/1")
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody(Movie.class)
+                .isEqualTo(movie);
+    }
+
+    @Test
+    @DisplayName("it should return a error when looking for a movieId that does not exists")
+    public void itShouldReturnErrorWhenIdNotFound(){
+        when(repository.findById(4)).thenReturn(Mono.empty());
+
+        testClient
+                .get()
+                .uri("/movies/4")
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.status").isEqualTo(404);
     }
 
 }
