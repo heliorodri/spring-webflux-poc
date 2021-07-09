@@ -25,7 +25,9 @@ import reactor.core.scheduler.Schedulers;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.MOVIE_ID;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeSaved;
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeUpdated;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
@@ -172,6 +174,42 @@ public class MovieControllerIT {
                 .expectStatus().isNotFound()
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("it should update a movie with success")
+    public void itShouldUpdateTheMovieWithSuccess(){
+        Movie movieToUpdate = buildMovieToBeUpdated();
+        when(repository.save(buildMovieToBeUpdated())).thenReturn(Mono.empty());
+
+        testClient
+                .put()
+                .uri("/movies/{id}", MOVIE_ID)
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(movieToUpdate))
+                .exchange()
+                .expectStatus().isOk()
+                .expectBody()
+                .jsonPath("$.status", 200);
+    }
+
+    @Test
+    @DisplayName("it should return error when trying to update a movie that does not exists")
+    public void itShouldReturnErrorWhenUpdatingMovieIsNotFound(){
+        Movie movieToUpdate = buildMovieToBeUpdated();
+        int idMovieNotFound = 2;
+
+        when(repository.findById(2)).thenReturn(Mono.empty());
+
+        testClient
+                .put()
+                .uri("/movies/{id}", idMovieNotFound)
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(movieToUpdate))
+                .exchange()
+                .expectStatus().isNotFound()
+                .expectBody()
+                .jsonPath("$.status", 404);
     }
 
 }
