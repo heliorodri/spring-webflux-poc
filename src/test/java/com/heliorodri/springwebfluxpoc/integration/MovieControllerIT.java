@@ -15,6 +15,7 @@ import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.context.annotation.Import;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.reactive.server.WebTestClient;
+import org.springframework.web.reactive.function.BodyInserters;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
 import reactor.core.publisher.Flux;
@@ -24,10 +25,13 @@ import reactor.core.scheduler.Schedulers;
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeSaved;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
+import static org.springframework.http.MediaType.APPLICATION_JSON;
 
 @ExtendWith(SpringExtension.class)
 @WebFluxTest
@@ -67,6 +71,8 @@ public class MovieControllerIT {
     public void setUp() {
         when(repository.findAll()).thenReturn(Flux.just(movie));
         when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
+        when(repository.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
+        when(repository.delete(any(Movie.class))).thenReturn(Mono.empty());
     }
 
     @Test
@@ -106,6 +112,38 @@ public class MovieControllerIT {
                 .expectStatus().isNotFound()
                 .expectBody()
                 .jsonPath("$.status").isEqualTo(404);
+    }
+
+    @Test
+    @DisplayName("it should save a movies with success")
+    public void itShouldSaveTheMovieWithSuccess(){
+        Movie movieToSave = buildMovieToBeSaved();
+
+        testClient
+                .post()
+                .uri("/movies")
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(movieToSave))
+                .exchange()
+                .expectStatus().isCreated()
+                .expectBody(Movie.class)
+                .isEqualTo(movie);
+    }
+
+    @Test
+    @DisplayName("it should return error when saving a movies with no name")
+    public void itShouldReturnErrorWhenSavingMovieWithNoName(){
+        Movie movieToSave = buildMovieToBeSaved().withName("");
+
+        testClient
+                .post()
+                .uri("/movies/")
+                .contentType(APPLICATION_JSON)
+                .body(BodyInserters.fromValue(movieToSave))
+                .exchange()
+                .expectStatus().isBadRequest()
+                .expectBody()
+                .jsonPath("$.status").isEqualTo(400);
     }
 
 }

@@ -8,6 +8,7 @@ import lombok.With;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.relational.core.mapping.Table;
 
+import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 @Data
@@ -20,7 +21,8 @@ public class Movie {
 
     @Id
     private Integer id;
-    @NotNull(message = "The name of the movie cannot be blank")
+
+    @NotBlank(message = "The name of the movie cannot be blank")
     private String name;
 
 }

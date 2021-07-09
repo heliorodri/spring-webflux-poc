@@ -27,11 +27,4 @@ public class MovieTestBuilder {
                 .build();
     }
 
-    public static Movie buildMovieWithNoName() {
-        return Movie.builder()
-                .id(MOVIE_ID)
-                .name("")
-                .build();
-    }
-
 }
