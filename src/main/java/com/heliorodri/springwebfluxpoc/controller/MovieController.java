@@ -22,6 +22,7 @@ import javax.validation.Valid;
 
 import static org.springframework.http.HttpStatus.CREATED;
 import static org.springframework.http.HttpStatus.NOT_FOUND;
+import static org.springframework.http.HttpStatus.OK;
 
 @RestController
 @RequestMapping("movies")
@@ -32,6 +33,7 @@ public class MovieController {
     private final MovieService service;
 
     @GetMapping
+    @ResponseStatus(OK)
     public Flux<Movie> listAll() {
         return service.findAll();
     }
