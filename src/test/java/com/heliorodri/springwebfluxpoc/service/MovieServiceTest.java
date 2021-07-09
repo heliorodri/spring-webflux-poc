@@ -23,8 +23,10 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.MOVIE_ID;
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeSaved;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
@@ -48,6 +50,7 @@ class MovieServiceTest {
     public void setUp(){
         when(repository.findAll()).thenReturn(Flux.just(movie));
         when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
+        when(repository.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
     }
 
     @Test
@@ -95,6 +98,17 @@ class MovieServiceTest {
                 .expectSubscription()
                 .expectError(ResponseStatusException.class)
                 .verify();
+    }
+
+    @Test
+    @DisplayName("it should save a movies with success")
+    public void itShouldSaveTheMovieWithSuccess(){
+        Movie movieToSave = buildMovieToBeSaved();
+
+        StepVerifier.create(service.save(movieToSave))
+                .expectSubscription()
+                .expectNext(movie)
+                .verifyComplete();
     }
 
 }
