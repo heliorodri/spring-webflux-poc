@@ -4,8 +4,8 @@ import com.heliorodri.springwebfluxpoc.domain.Movie;
 
 public class MovieTestBuilder {
 
-    private static final int MOVIE_ID = 1;
-    private static final String MOVIE_NAME = "Movie Test";
+    public static final int MOVIE_ID = 1;
+    public static final String MOVIE_NAME = "Movie Test";
 
     public static Movie buildMovieToBeSaved() {
         return Movie.builder()

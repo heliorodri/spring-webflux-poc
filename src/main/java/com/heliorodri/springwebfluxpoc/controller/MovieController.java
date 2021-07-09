@@ -39,8 +39,7 @@ public class MovieController {
     @GetMapping("/{id}")
     public Mono<Movie> findById(@PathVariable int id){
         log.info("Looking for movie with id {}", id);
-        return service.findById(id)
-                .switchIfEmpty(Mono.error(new ResponseStatusException(NOT_FOUND, "Movie with id " + id + " not found")));
+        return service.findById(id);
     }
 
     @PostMapping
