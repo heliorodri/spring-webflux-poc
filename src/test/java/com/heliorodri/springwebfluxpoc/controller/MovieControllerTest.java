@@ -22,8 +22,11 @@ import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.MOVIE_ID;
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeSaved;
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildMovieToBeUpdated;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
@@ -47,6 +50,9 @@ class MovieControllerTest{
     public void setUp(){
         when(service.findAll()).thenReturn(Flux.just(movie));
         when(service.findById(anyInt())).thenReturn(Mono.just(movie));
+        when(service.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
+        when(service.delete(anyInt())).thenReturn(Mono.empty());
+        when(service.update(anyInt(), any(Movie.class))).thenReturn(Mono.empty());
     }
 
     @Test
@@ -80,6 +86,35 @@ class MovieControllerTest{
         StepVerifier.create(controller.findById(MOVIE_ID))
                 .expectSubscription()
                 .expectNext(movie)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should save a movies with success")
+    public void itShouldSaveTheMovieWithSuccess(){
+        Movie movieToSave = buildMovieToBeSaved();
+
+        StepVerifier.create(controller.save(movieToSave))
+                .expectSubscription()
+                .expectNext(movie)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should delete a movie -referenced by id- with success")
+    public void itShouldDeleteTheMovieWithSuccess(){
+        int idMovieToBeRemoved = 1;
+
+        StepVerifier.create(controller.delete(idMovieToBeRemoved))
+                .expectSubscription()
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should update a movie with success")
+    public void itShouldUpdateTheMovieWithSuccess(){
+        StepVerifier.create(controller.update(MOVIE_ID, buildMovieToBeUpdated()))
+                .expectSubscription()
                 .verifyComplete();
     }
 
