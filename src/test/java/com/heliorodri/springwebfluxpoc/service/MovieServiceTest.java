@@ -51,6 +51,7 @@ class MovieServiceTest {
         when(repository.findAll()).thenReturn(Flux.just(movie));
         when(repository.findById(anyInt())).thenReturn(Mono.just(movie));
         when(repository.save(buildMovieToBeSaved())).thenReturn(Mono.just(movie));
+        when(repository.delete(any(Movie.class))).thenReturn(Mono.empty());
     }
 
     @Test
@@ -109,6 +110,29 @@ class MovieServiceTest {
                 .expectSubscription()
                 .expectNext(movie)
                 .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should delete a movie -referenced by id- with success")
+    public void itShouldDeleteTheMovieWithSuccess(){
+        int idMovieToBeRemoved = 1;
+
+        StepVerifier.create(service.delete(idMovieToBeRemoved))
+                .expectSubscription()
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should return error when trying to delete movie which does not exists")
+    public void itShouldReturnErroWhenMovieIsNotFoundForDelete(){
+        int movieNotFoundId = 2;
+
+        when(repository.findById(movieNotFoundId)).thenReturn(Mono.empty());
+
+        StepVerifier.create(service.delete(movieNotFoundId))
+                .expectSubscription()
+                .expectError()
+                .verify();
     }
 
 }
