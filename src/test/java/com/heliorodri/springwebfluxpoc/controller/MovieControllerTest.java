@@ -14,14 +14,17 @@ import org.springframework.test.context.junit.jupiter.SpringExtension;
 import reactor.blockhound.BlockHound;
 import reactor.blockhound.BlockingOperationError;
 import reactor.core.publisher.Flux;
+import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
 
 import java.util.concurrent.FutureTask;
 import java.util.concurrent.TimeUnit;
 
+import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.MOVIE_ID;
 import static com.heliorodri.springwebfluxpoc.service.util.MovieTestBuilder.buildValidMovie;
 import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.mockito.ArgumentMatchers.anyInt;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(SpringExtension.class)
@@ -43,6 +46,7 @@ class MovieControllerTest{
     @BeforeEach
     public void setUp(){
         when(service.findAll()).thenReturn(Flux.just(movie));
+        when(service.findById(anyInt())).thenReturn(Mono.just(movie));
     }
 
     @Test
@@ -65,6 +69,15 @@ class MovieControllerTest{
     @DisplayName("it should return all movies(flux) with success")
     public void itShouldReturnFluxOfAllMovies(){
         StepVerifier.create(controller.listAll())
+                .expectSubscription()
+                .expectNext(movie)
+                .verifyComplete();
+    }
+
+    @Test
+    @DisplayName("it should find a movie by its id with success")
+    public void itShouldReturnMonoMovieById(){
+        StepVerifier.create(controller.findById(MOVIE_ID))
                 .expectSubscription()
                 .expectNext(movie)
                 .verifyComplete();
